@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Круговая диаграмма - перевод с Pascal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Montserrat', sans-serif;
+            background: linear-gradient(145deg, #11998e 0%, #38ef7d 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: rgba(255,255,255,0.95);
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            max-width: 1000px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #11998e;
+            margin-bottom: 20px;
+            font-weight: 300;
+            font-size: 2.5em;
+        }
+        
+        h1 span {
+            font-weight: 600;
+            background: linear-gradient(145deg, #11998e, #38ef7d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .input-panel {
+            background: linear-gradient(145deg, #f5f7fa, #e9edf5);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        .input-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .input-item label {
+            font-weight: 600;
+            color: #11998e;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .input-item input {
+            width: 80px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 15px;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            font-size: 1.1em;
+            text-align: center;
+            font-weight: 600;
+            color: #11998e;
+        }
+        
+        .btn {
+            background: linear-gradient(145deg, #11998e, #38ef7d);
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 20px -5px #11998e;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px -5px #11998e;
+        }
+        
+        .data-panel {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .data-input {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .data-input h3 {
+            color: #11998e;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .data-fields {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        
+        .data-field {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .data-field label {
+            font-size: 0.8em;
+            color: #666;
+        }
+        
+        .data-field input {
+            width: 70px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .canvas-container {
+            position: relative;
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            margin: 25px 0;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 15px;
+            background: #fafafa;
+        }
+        
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: linear-gradient(145deg, #ffffff, #f5f5f5);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            border-left: 4px solid #11998e;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.85em;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #11998e;
+        }
+        
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 15px;
+            background: white;
+            border-radius: 25px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span>🥧 Круговая диаграмма</span> (Pie Chart)</h1>
+        
+        <div class="input-panel">
+            <div class="input-group">
+                <div class="input-item">
+                    <label>Количество точек (k)</label>
+                    <input type="number" id="k" value="5" min="1" max="12">
+                </div>
+                <div class="input-item">
+                    <label>Радиус (r)</label>
+                    <input type="number" id="r" value="150" min="50" max="300">
+                </div>
+                <button class="btn" onclick="buildChart()">Построить диаграмму</button>
+            </div>
+            
+            <div class="data-panel">
+                <div class="data-input">
+                    <h3>📊 Значения функций</h3>
+                    <div class="data-fields" id="dataFields">
+                        <!-- будут добавлены через JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="canvas-container">
+            <canvas id="chartCanvas" width="800" height="600"></canvas>
+        </div>
+        
+        <div class="stats-panel" id="statsPanel">
+            <!-- заполняется через JS -->
+        </div>
+        
+        <div class="legend" id="legend"></div>
+        
+        <footer>
+            © К. Поляков | Перевод на JavaScript | kmax=12, n=5, m=2, r=150
+        </footer>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('chartCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Константы из оригинальной программы
+        const kmax = 12;      // максимальное количество значений
+        const n = 5;          // ширина поля вывода
+        const m = 2;          // размер дробной части
+        
+        // Переменные
+        let f = [];           // массив значений функции
+        let alfa = [];        // массив углов
+        let k = 5;            // количество значений
+        let r = 150;          // радиус диаграммы
+        let xn, yn;           // центр диаграммы
+        let sum = 0;          // сумма значений
+        
+        // Цвета для секторов
+        const colors = [
+            '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEEAD',
+            '#D4A5A5', '#9B59B6', '#3498DB', '#E67E22', '#2ECC71',
+            '#F1C40F', '#E74C3C', '#1ABC9C', '#34495E', '#7F8C8D'
+        ];
+        
+        // Создание полей для ввода данных
+        function createDataFields() {
+            k = parseInt(document.getElementById('k').value) || 5;
+            k = Math.min(k, kmax);
+            
+            const container = document.getElementById('dataFields');
+            container.innerHTML = '';
+            
+            f = [];
+            
+            for (let i = 0; i < k; i++) {
+                const fieldDiv = document.createElement('div');
+                fieldDiv.className = 'data-field';
+                
+                const label = document.createElement('label');
+                label.textContent = `f[${i+1}]`;
+                
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.id = `f${i}`;
+                input.value = Math.floor(Math.random() * 20) + 5; // случайные значения
+                input.step = '0.1';
+                input.onchange = calculateSum;
+                
+                fieldDiv.appendChild(label);
+                fieldDiv.appendChild(input);
+                container.appendChild(fieldDiv);
+                
+                f[i] = parseFloat(input.value);
+            }
+            
+            calculateSum();
+        }
+        
+        // Вычисление суммы
+        function calculateSum() {
+            sum = 0;
+            for (let i = 0; i < k; i++) {
+                const input = document.getElementById(`f${i}`);
+                if (input) {
+                    f[i] = parseFloat(input.value) || 0;
+                    sum += f[i];
+                }
+            }
+            
+            // Проверка на нулевую сумму
+            if (Math.abs(sum) < 0.001) {
+                showWarning();
+            }
+            
+            updateStats();
+            return sum;
+        }
+        
+        // Показать предупреждение
+        function showWarning() {
+            const warning = document.createElement('div');
+            warning.className = 'warning';
+            warning.id = 'warning';
+            warning.innerHTML = '⚠️ Все значения нулевые. Невозможно построить диаграмму.';
+            
+            const oldWarning = document.getElementById('warning');
+            if (oldWarning) oldWarning.remove();
+            
+            document.querySelector('.canvas-container').before(warning);
+        }
+        
+        // Обновление статистики
+        function updateStats() {
+            const panel = document.getElementById('statsPanel');
+            panel.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Сумма</div>
+                    <div class="stat-value">${sum.toFixed(2)}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Количество</div>
+                    <div class="stat-value">${k}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Радиус</div>
+                    <div class="stat-value">${r}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Максимум</div>
+                    <div class="stat-value">${Math.max(...f).toFixed(2)}</div>
+                </div>
+            `;
+        }
+        
+        // Очистка canvas
+        function clearCanvas() {
+            ctx.clearRect(0, 0, 800, 600);
+            ctx.fillStyle = '#fafafa';
+            ctx.fillRect(0, 0, 800, 600);
+        }
+        
+        // Построение диаграммы
+        function buildChart() {
+            // Удаляем предупреждение
+            const warning = document.getElementById('warning');
+            if (warning) warning.remove();
+            
+            // Получаем параметры
+            k = parseInt(document.getElementById('k').value) || 5;
+            r = parseInt(document.getElementById('r').value) || 150;
+            k = Math.min(k, kmax);
+            
+            // Создаем поля ввода
+            createDataFields();
+            
+            // Проверка суммы
+            if (Math.abs(sum) < 0.001) {
+                return;
+            }
+            
+            // Координаты центра
+            xn = canvas.width / 2;
+            yn = canvas.height / 2;
+            
+            // Расчет углов
+            alfa = [];
+            alfa[0] = 0;
+            
+            for (let i = 1; i <= k + 1; i++) {
+                if (i !== k + 1) {
+                    alfa[i] = alfa[i - 1] + Math.round((f[i - 1] / sum) * 360);
+                } else {
+                    alfa[i] = 360;
+                }
+            }
+            
+            // Очищаем canvas
+            clearCanvas();
+            
+            // Рисуем секторы
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1;
+            
+            for (let i = 1; i <= k; i++) {
+                const startAngle = (alfa[i - 1] * Math.PI) / 180;
+                const endAngle = (alfa[i] * Math.PI) / 180;
+                
+                // Устанавливаем цвет закраски
+                ctx.fillStyle = colors[(i - 1) % colors.length];
+                
+                // Рисуем сектор
+                ctx.beginPath();
+                ctx.moveTo(xn, yn);
+                ctx.arc(xn, yn, r, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+                
+                // Вычисляем координаты для надписи (биссектриса)
+                const bet = Math.round((alfa[i - 1] + alfa[i]) / 2);
+                const rad = (bet * Math.PI) / 180;
+                
+                const x = xn + Math.round(r * Math.cos(rad) * 0.7); // чуть ближе к центру
+                const y = yn - Math.round(r * Math.sin(rad) * 0.7);
+                
+                // Определяем положение текста
+                let xl, yl;
+                
+                if ((bet >= 0 && bet <= 90) || (bet >= 270 && bet <= 360)) {
+                    xl = x + 10;
+                } else {
+                    xl = x - 50;
+                }
+                
+                if (bet >= 0 && bet <= 180) {
+                    yl = y - 15;
+                } else {
+                    yl = y + 7;
+                }
+                
+                // Форматируем значение (n=5, m=2 как в Pascal)
+                const value = f[i - 1];
+                let str;
+                if (Number.isInteger(value)) {
+                    str = value.toString().padStart(n, ' ');
+                } else {
+                    str = value.toFixed(m).padStart(n, ' ');
+                }
+                
+                // Рисуем текст
+                ctx.font = '12px Courier New';
+                ctx.fillStyle = '#333';
+                ctx.fillText(str, xl, yl);
+            }
+            
+            // Рисуем центр
+            ctx.beginPath();
+            ctx.arc(xn, yn, 3, 0, 2 * Math.PI);
+            ctx.fillStyle = '#333';
+            ctx.fill();
+            
+            // Создаем легенду
+            createLegend();
+        }
+        
+        // Создание легенды
+        function createLegend() {
+            const legend = document.getElementById('legend');
+            legend.innerHTML = '';
+            
+            for (let i = 0; i < k; i++) {
+                const item = document.createElement('div');
+                item.className = 'legend-item';
+                
+                const color = document.createElement('div');
+                color.className = 'legend-color';
+                color.style.backgroundColor = colors[i % colors.length];
+                
+                const text = document.createElement('span');
+                text.textContent = `f[${i+1}] = ${f[i].toFixed(2)} (${((f[i]/sum)*100).toFixed(1)}%)`;
+                
+                item.appendChild(color);
+                item.appendChild(text);
+                legend.appendChild(item);
+            }
+        }
+        
+        // Инициализация
+        window.onload = () => {
+            createDataFields();
+            
+            // Добавляем обработчик изменения k
+            document.getElementById('k').addEventListener('change', () => {
+                buildChart();
+            });
+            
+            document.getElementById('r').addEventListener('input', () => {
+                r = parseInt(document.getElementById('r').value) || 150;
+                buildChart();
+            });
+        };
+        
+        // Соответствие оригинальной программе на Pascal
+        /*
+        Program difgramma;
+        Uses Graph;
+        Const
+            kmax = 12;
+            r = 150;
+            n = 5;
+            m = 2;
+        Var
+            f: masl;
+            alfa: mas;
+            ...
+        Begin
+            WriteLn('Введите количество точек (от 1 до', kmax, ')');
+            ReadLn(k);
+            s := 0;
+            for i := 1 to k do begin
+                ReadLn(f[i]);
+                s := s + f[i];
+            end;
+            if s = 0 then begin
+                WriteLn('Все значения нулевые.');
+                halt(1);
+            end;
+            InitGraph(driver, err, '');
+            SetBkColor(15);
+            xn := GetMaxX div 2;
+            yn := GetMaxY div 2;
+            alfa[1] := 0;
+            for i := 2 to k + 1 do begin
+                if i <> k + 1 then
+                    alfa[i] := alfa[i - 1] + round(f[i - 1] / s * 360)
+                else
+                    alfa[k + 1] := 360;
+                SetFillStyle(i mod 10, i);
+                Pieslice(xn, yn, alfa[i - 1], alfa[i], r);
+                bet := (alfa[i - 1] + alfa[i]) div 2;
+                x := xn + round(r * cos(bet * pi / 180));
+                y := yn - round(r * sin(bet * pi / 180));
+                if ((bet >= 0) and (bet <= 90)) or ((bet >= 270) and (bet <= 360)) then
+                    xl := x + 10
+                else
+                    xl := x - 8 * n - 10;
+                if (bet >= 0) and (bet <= 180) then
+                    yl := y - 15
+                else
+                    yl := y + 7;
+                Str(f[i - 1]:n:m, st);
+                OutTextXY(xl, yl, st);
+            end;
+            ReadLn;
+            CloseGraph;
+        End.
+        */
+    </script>
+</body>
+</html>

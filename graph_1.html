@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Построение графика функции y = cos(x+2)/2</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Montserrat', sans-serif;
+            background: linear-gradient(145deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: rgba(255,255,255,0.95);
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            max-width: 1000px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #1e3c72;
+            margin-bottom: 20px;
+            font-weight: 300;
+            font-size: 2.5em;
+            letter-spacing: 1px;
+        }
+        
+        h1 span {
+            font-weight: 600;
+            color: #2a5298;
+            border-bottom: 3px solid #4A90E2;
+            padding-bottom: 5px;
+        }
+        
+        .input-panel {
+            background: linear-gradient(145deg, #f5f7fa, #e9edf5);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .input-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .input-item label {
+            font-weight: 600;
+            color: #1e3c72;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .input-item input {
+            width: 120px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 15px;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            font-size: 1.1em;
+            text-align: center;
+            font-weight: 600;
+            color: #2a5298;
+            transition: all 0.3s;
+        }
+        
+        .input-item input:focus {
+            outline: none;
+            box-shadow: 0 5px 20px rgba(74, 144, 226, 0.4);
+            transform: scale(1.05);
+        }
+        
+        .btn {
+            background: linear-gradient(145deg, #4A90E2, #357ABD);
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 20px -5px #4A90E2;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px -5px #4A90E2;
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .graph-container {
+            position: relative;
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            margin: 25px 0;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 15px;
+            background: #fafafa;
+            cursor: crosshair;
+        }
+        
+        .info-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin: 25px 0;
+        }
+        
+        .info-card {
+            background: linear-gradient(145deg, #ffffff, #f5f5f5);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 4px solid #4A90E2;
+        }
+        
+        .info-label {
+            color: #666;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .info-value {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #2a5298;
+            font-family: 'Courier New', monospace;
+            margin-top: 5px;
+        }
+        
+        .info-value small {
+            font-size: 0.6em;
+            color: #999;
+        }
+        
+        .stats-bar {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .stat-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4A90E2;
+        }
+        
+        .stat-dot.red { background: #FF6B6B; }
+        .stat-dot.blue { background: #4A90E2; }
+        
+        .coords-display {
+            background: #2a5298;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            text-align: center;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .grid-controls {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        
+        .grid-control-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f0f0f0;
+            padding: 8px 15px;
+            border-radius: 25px;
+        }
+        
+        .grid-control-item input {
+            width: 60px;
+            padding: 5px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span>📈 График функции</span> y = cos(x+2)/2</h1>
+        
+        <div class="input-panel">
+            <div class="input-group">
+                <div class="input-item">
+                    <label>Начало интервала (xn)</label>
+                    <input type="number" id="xn" value="2" step="0.1">
+                </div>
+                <div class="input-item">
+                    <label>Конец интервала (xk)</label>
+                    <input type="number" id="xk" value="7" step="0.1">
+                </div>
+                <div class="input-item">
+                    <label>Количество точек (k)</label>
+                    <input type="number" id="k" value="100" min="10" max="200">
+                </div>
+                <button class="btn" onclick="buildGraph()">Построить график</button>
+            </div>
+            
+            <div class="grid-controls">
+                <div class="grid-control-item">
+                    <span>📊 Сетка по X:</span>
+                    <input type="number" id="nx" value="5" min="1" max="20" onchange="updateGrid()">
+                </div>
+                <div class="grid-control-item">
+                    <span>📊 Сетка по Y:</span>
+                    <input type="number" id="ny" value="5" min="1" max="20" onchange="updateGrid()">
+                </div>
+            </div>
+        </div>
+        
+        <div class="graph-container">
+            <canvas id="graphCanvas" width="800" height="500"></canvas>
+        </div>
+        
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-dot red"></div>
+                <span>График: y = cos(x+2)/2</span>
+            </div>
+            <div class="stat-item">
+                <div class="stat-dot blue"></div>
+                <span>Сетка: nx=5, ny=5</span>
+            </div>
+        </div>
+        
+        <div class="coords-display" id="coords">
+            X: 0.00, Y: 0.00
+        </div>
+        
+        <div class="info-panel" id="infoPanel">
+            <!-- заполняется через JS -->
+        </div>
+        
+        <footer>
+            © К. Поляков | Перевод на JavaScript | Параметры: n=5, m=2
+        </footer>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('graphCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Константы из оригинальной программы
+        const n = 5;        // количество позиций на число
+        const m = 2;        // размер мантиссы при выводе
+        const kxn = 60;     // левая граница окна
+        const kxk = 600;    // правая граница окна
+        const kyn = 45;     // верхняя граница окна
+        const kyk = 350;    // нижняя граница окна
+        
+        // Переменные для хранения данных
+        let x = [];
+        let y = [];
+        let kx = [];
+        let ky = [];
+        let ymin, ymax, dx, dy, mx, my;
+        let nx = 5, ny = 5;
+        
+        // Функция для табулирования
+        function tabulateFunction(xn, xk, k) {
+            const h = (xk - xn) / (k - 1);
+            
+            x = [];
+            y = [];
+            
+            x[0] = xn;
+            ymin = 1e30;
+            ymax = -1e30;
+            
+            for (let i = 0; i < k; i++) {
+                y[i] = Math.cos(x[i] + 2) / 2;
+                
+                if (y[i] > ymax) ymax = y[i];
+                if (y[i] < ymin) ymin = y[i];
+                
+                if (i < k - 1) {
+                    x[i + 1] = x[i] + h;
+                }
+            }
+            
+            // Масштабные коэффициенты
+            mx = (kxk - kxn) / (x[k-1] - x[0]);
+            my = (kyk - kyn) / (ymax - ymin);
+            
+            // Координаты точек
+            kx = [];
+            ky = [];
+            
+            for (let i = 0; i < k; i++) {
+                kx[i] = Math.round((x[i] - x[0]) * mx) + kxn;
+                ky[i] = Math.round((ymax - y[i]) * my) + kyn;
+            }
+        }
+        
+        // Очистка canvas
+        function clearCanvas() {
+            ctx.clearRect(0, 0, 800, 500);
+            ctx.fillStyle = '#fafafa';
+            ctx.fillRect(0, 0, 800, 500);
+        }
+        
+        // Рисование прямоугольника для графика
+        function drawRectangle() {
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(kxn, kyn, kxk - kxn, kyk - kyn);
+        }
+        
+        // Рисование сетки
+        function drawGrid() {
+            nx = parseInt(document.getElementById('nx').value) || 5;
+            ny = parseInt(document.getElementById('ny').value) || 5;
+            
+            const dkx = Math.round((kxk - kxn) / nx);
+            const dky = Math.round((kyk - kyn) / ny);
+            
+            ctx.strokeStyle = '#4A90E2';
+            ctx.lineWidth = 0.5;
+            
+            // Вертикальные линии сетки
+            for (let i = 1; i <= nx; i++) {
+                ctx.beginPath();
+                ctx.moveTo(kxn + dkx * i, kyn);
+                ctx.lineTo(kxn + dkx * i, kyk);
+                ctx.strokeStyle = '#4A90E2';
+                ctx.stroke();
+            }
+            
+            // Горизонтальные линии сетки
+            for (let i = 1; i <= ny; i++) {
+                ctx.beginPath();
+                ctx.moveTo(kxn, kyk - dky * i);
+                ctx.lineTo(kxk, kyk - dky * i);
+                ctx.strokeStyle = '#4A90E2';
+                ctx.stroke();
+            }
+            
+            // Шаг для подписей
+            dx = (x[x.length-1] - x[0]) / nx;
+            dy = (ymax - ymin) / ny;
+        }
+        
+        // Рисование графика
+        function drawGraph() {
+            ctx.beginPath();
+            ctx.strokeStyle = '#FF6B6B';
+            ctx.lineWidth = 3;
+            
+            for (let i = 0; i < kx.length - 1; i++) {
+                ctx.moveTo(kx[i], ky[i]);
+                ctx.lineTo(kx[i + 1], ky[i + 1]);
+            }
+            ctx.stroke();
+            
+            // Точки на графике
+            ctx.fillStyle = '#FF6B6B';
+            for (let i = 0; i < kx.length; i += 5) {
+                ctx.beginPath();
+                ctx.arc(kx[i], ky[i], 3, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+        }
+        
+        // Подписи значений
+        function drawLabels() {
+            ctx.font = '12px Courier New';
+            ctx.fillStyle = '#333';
+            
+            // Подписи по оси X
+            ctx.textAlign = 'center';
+            for (let i = 0; i <= nx; i++) {
+                const xVal = (x[0] + dx * i).toFixed(2);
+                ctx.fillText(xVal, kxn + ((kxk - kxn) / nx) * i, kyk + 20);
+            }
+            
+            // Подписи по оси Y
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= ny; i++) {
+                const yVal = (ymin + dy * i).toFixed(2);
+                ctx.fillText(yVal, kxn - 10, kyk - ((kyk - kyn) / ny) * i + 5);
+            }
+            
+            // Заголовок
+            ctx.font = 'bold 16px Arial';
+            ctx.fillStyle = '#2a5298';
+            ctx.textAlign = 'center';
+            ctx.fillText('Y = cos(x+2)/2', 400, 25);
+        }
+        
+        // Обновление информационной панели
+        function updateInfoPanel() {
+            const panel = document.getElementById('infoPanel');
+            panel.innerHTML = `
+                <div class="info-card">
+                    <div class="info-label">Минимум Y</div>
+                    <div class="info-value">${ymin.toFixed(4)}</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">Максимум Y</div>
+                    <div class="info-value">${ymax.toFixed(4)}</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">Масштаб X</div>
+                    <div class="info-value">${mx.toFixed(2)} <small>px/ед</small></div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">Масштаб Y</div>
+                    <div class="info-value">${my.toFixed(2)} <small>px/ед</small></div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">Кол-во точек</div>
+                    <div class="info-value">${kx.length}</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">Шаг по X</div>
+                    <div class="info-value">${((x[x.length-1] - x[0])/(kx.length-1)).toFixed(4)}</div>
+                </div>
+            `;
+        }
+        
+        // Основная функция построения графика
+        function buildGraph() {
+            const xn = parseFloat(document.getElementById('xn').value);
+            const xk = parseFloat(document.getElementById('xk').value);
+            const k = parseInt(document.getElementById('k').value);
+            
+            if (xn >= xk) {
+                alert('Начало интервала должно быть меньше конца!');
+                return;
+            }
+            
+            // Табулируем функцию
+            tabulateFunction(xn, xk, k);
+            
+            // Очищаем canvas
+            clearCanvas();
+            
+            // Рисуем прямоугольник
+            drawRectangle();
+            
+            // Рисуем сетку
+            drawGrid();
+            
+            // Рисуем график
+            drawGraph();
+            
+            // Подписи
+            drawLabels();
+            
+            // Обновляем информацию
+            updateInfoPanel();
+            
+            // Выводим параметры в консоль (как в оригинале)
+            console.log('Параметры:');
+            console.log(`n=${n}, m=${m}, k=${k}, nx=${nx}, ny=${ny}`);
+            console.log(`ymin=${ymin.toFixed(4)}, ymax=${ymax.toFixed(4)}`);
+            console.log(`mx=${mx.toFixed(2)}, my=${my.toFixed(2)}`);
+        }
+        
+        // Обновление сетки
+        function updateGrid() {
+            if (x.length > 0) {
+                clearCanvas();
+                drawRectangle();
+                drawGrid();
+                drawGraph();
+                drawLabels();
+            }
+        }
+        
+        // Отслеживание мыши для отображения координат
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            
+            const mouseX = (e.clientX - rect.left) * scaleX;
+            const mouseY = (e.clientY - rect.top) * scaleY;
+            
+            // Преобразование в мировые координаты
+            if (x.length > 0 && mx && my) {
+                const worldX = (mouseX - kxn) / mx + x[0];
+                const worldY = ymax - (mouseY - kyn) / my;
+                
+                document.getElementById('coords').innerHTML = 
+                    `X: ${worldX.toFixed(3)}, Y: ${worldY.toFixed(3)} | Экран: (${Math.round(mouseX)}, ${Math.round(mouseY)})`;
+            }
+        });
+        
+        // Инициализация при загрузке
+        window.onload = () => {
+            buildGraph();
+        };
+        
+        // Соответствие оригинальной программе на Pascal
+        /*
+        Program Gr;
+        Uses Crt, Graph;
+        Const
+            n = 5; {количество позиций на число}
+            m = 2; {размер мантиссы при выводе}
+            k = 100; {количество точек просчета}
+            nx = 5; ny = 5; {количество линий сетки}
+            kxn = 60; kxk = 600;
+            kyn = 45; kyk = 350;
+        Var
+            ...
+        Begin
+            Write('Введите начало и конец интервала: ');
+            ReadLn(xn, xk);
+            h := (xk - xn)/(k - 1);
+            ...
+            for i := 1 to k do
+                y[i] := cos(x[i] + 2)/2;
+            ...
+            InitGraph(gd, gm, '');
+            Rectangle(kxn, kyn, kxk, kyk);
+            ...
+        End.
+        */
+    </script>
+</body>
+</html>

@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Меню со звуками - перевод с Pascal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(145deg, #2b5876, #4e4376);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: rgba(0,0,0,0.8);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            max-width: 800px;
+            width: 100%;
+            border: 1px solid #4a90e2;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4a90e2;
+            margin-bottom: 30px;
+            font-size: 2em;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px rgba(74,144,226,0.5);
+        }
+        
+        .menu-container {
+            background: #1a1a1a;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            border: 2px solid #333;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+        }
+        
+        .menu-item {
+            font-family: 'Courier New', monospace;
+            font-size: 24px;
+            padding: 15px 30px;
+            margin: 10px 0;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #000;
+            color: #4a90e2;
+            text-align: center;
+            letter-spacing: 2px;
+            border-radius: 10px;
+        }
+        
+        .menu-item.selected {
+            background: linear-gradient(145deg, #4a90e2, #357abd);
+            color: white;
+            border-color: #fff;
+            box-shadow: 0 0 20px #4a90e2;
+            transform: scale(1.02);
+        }
+        
+        .menu-item:hover {
+            border-color: #4a90e2;
+        }
+        
+        .info-panel {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #4a90e2;
+        }
+        
+        .info-title {
+            color: #4a90e2;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #000;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            border: 1px solid #333;
+        }
+        
+        .status-label {
+            color: #888;
+        }
+        
+        .status-value {
+            color: #4a90e2;
+            font-weight: bold;
+        }
+        
+        .key-hint {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+            color: #888;
+        }
+        
+        .key {
+            background: #333;
+            color: #fff;
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: 1px solid #4a90e2;
+        }
+        
+        .sound-btn {
+            background: linear-gradient(145deg, #4a90e2, #357abd);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            margin: 20px 0;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .sound-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px #4a90e2;
+        }
+        
+        .sound-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .sound-list {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin: 15px 0;
+        }
+        
+        .sound-note {
+            background: #000;
+            color: #4a90e2;
+            padding: 8px;
+            text-align: center;
+            border-radius: 5px;
+            font-size: 0.9em;
+            border: 1px solid #333;
+        }
+        
+        .sound-note.playing {
+            background: #4a90e2;
+            color: white;
+            animation: pulse 0.3s;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .dos-prompt {
+            color: #4a90e2;
+            font-size: 0.9em;
+            margin-top: 10px;
+            padding: 10px;
+            border-top: 1px solid #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📟 Turbo Pascal Menu</h1>
+        
+        <div class="menu-container" id="menuContainer">
+            <div class="menu-item selected" data-index="0" onclick="selectItem(0)">📁 NEW</div>
+            <div class="menu-item" data-index="1" onclick="selectItem(1)">📂 OPEN</div>
+            <div class="menu-item" data-index="2" onclick="selectItem(2)">💾 SAVE</div>
+            <div class="menu-item" data-index="3" onclick="selectItem(3)">❌ EXIT</div>
+        </div>
+        
+        <div class="info-panel">
+            <div class="info-title">🎵 Частоты нот (Гц)</div>
+            <div class="sound-list" id="soundList"></div>
+        </div>
+        
+        <div class="status-bar">
+            <span class="status-label">Выбранный пункт:</span>
+            <span class="status-value" id="selectedItem">NEW</span>
+            <span class="status-label">Нота:</span>
+            <span class="status-value" id="currentNote">-</span>
+        </div>
+        
+        <button class="sound-btn" onclick="playAllNotes()" id="playButton">
+            ▶ Воспроизвести все ноты (как в примере)
+        </button>
+        
+        <div class="key-hint">
+            <span class="key">↑</span>
+            <span class="key">↓</span>
+            <span class="key">Enter</span>
+            <span class="key">Esc</span>
+        </div>
+        
+        <div class="dos-prompt" id="dosPrompt">
+            C:\&gt; program.exe
+        </div>
+        
+        <footer>
+            © Перевод с Pascal | Uses Crt, Dos | NewDelay, Sound, NoSound
+        </footer>
+    </div>
+
+    <script>
+        // Константы из оригинальной программы
+        const frequencies = [
+            330, 349, 370, 392, 415, 440, 466, 494, 523, 554, 588, 622, 660
+        ];
+        
+        const noteNames = [
+            'E4', 'F4', 'F#4', 'G4', 'G#4', 'A4', 'A#4', 'B4', 'C5', 'C#5', 'D5', 'D#5', 'E5'
+        ];
+        
+        // Пункты меню
+        const menuItems = ['NEW', 'OPEN', 'SAVE', 'EXIT'];
+        let selectedIndex = 0;
+        let audioContext = null;
+        let isPlaying = false;
+        
+        // Инициализация AudioContext при первом взаимодействии
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+        
+        //-----------------------------------------
+        // NewDelay - процедура задержки с использованием времени
+        // (аналог процедуры из оригинальной программы)
+        //-----------------------------------------
+        function NewDelay(dTimeMs) {
+            return new Promise((resolve) => {
+                const startTime = Date.now();
+                const endTime = startTime + dTimeMs;
+                
+                // Активное ожидание (как в оригинале с GetTime)
+                function checkTime() {
+                    const currentTime = Date.now();
+                    if (currentTime >= endTime) {
+                        resolve();
+                    } else {
+                        // Используем requestAnimationFrame для неблокирующего ожидания
+                        requestAnimationFrame(checkTime);
+                    }
+                }
+                
+                checkTime();
+            });
+        }
+        
+        //-----------------------------------------
+        // Sound - воспроизведение звука
+        //-----------------------------------------
+        async function Sound(frequency, duration = 50) {
+            initAudio();
+            
+            if (!audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.value = frequency;
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + duration / 1000);
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + duration / 1000);
+            
+            // Обновляем отображение текущей ноты
+            const noteIndex = frequencies.indexOf(frequency);
+            if (noteIndex !== -1) {
+                document.getElementById('currentNote').textContent = `${noteNames[noteIndex]} (${frequency}Hz)`;
+                
+                // Подсвечиваем ноту
+                const notes = document.querySelectorAll('.sound-note');
+                notes.forEach((note, idx) => {
+                    if (idx === noteIndex) {
+                        note.classList.add('playing');
+                        setTimeout(() => note.classList.remove('playing'), duration);
+                    }
+                });
+            }
+            
+            return new Promise(resolve => setTimeout(resolve, duration));
+        }
+        
+        //-----------------------------------------
+        // NoSound - остановка звука (в нашей реализации не нужна,
+        // так как звук останавливается автоматически)
+        //-----------------------------------------
+        function NoSound() {
+            // В веб-версии звук останавливается сам
+        }
+        
+        //-----------------------------------------
+        // Воспроизведение всех нот как в примере
+        //-----------------------------------------
+        async function playAllNotes() {
+            if (isPlaying) return;
+            
+            isPlaying = true;
+            const button = document.getElementById('playButton');
+            button.textContent = '⏸ Воспроизведение...';
+            button.disabled = true;
+            
+            document.getElementById('dosPrompt').textContent = 'C:\\> playing melody...';
+            
+            for (let i = 0; i < frequencies.length; i++) {
+                await Sound(frequencies[i], 50);
+                await NewDelay(50); // Задержка между нотами
+            }
+            
+            document.getElementById('dosPrompt').textContent = 'C:\\> melody finished';
+            button.textContent = '▶ Воспроизвести все ноты (как в примере)';
+            button.disabled = false;
+            isPlaying = false;
+        }
+        
+        //-----------------------------------------
+        // Рисование пункта меню (аналог DrawWin)
+        //-----------------------------------------
+        function drawMenuItem(index, isSelected) {
+            const items = document.querySelectorAll('.menu-item');
+            items[index].classList.toggle('selected', isSelected);
+        }
+        
+        //-----------------------------------------
+        // Рисование всего меню (аналог DrawMenu)
+        //-----------------------------------------
+        function drawMenu(selectedIdx) {
+            for (let i = 0; i < menuItems.length; i++) {
+                drawMenuItem(i, i === selectedIdx);
+            }
+            document.getElementById('selectedItem').textContent = menuItems[selectedIdx];
+        }
+        
+        //-----------------------------------------
+        // Выбор пункта меню
+        //-----------------------------------------
+        function selectItem(index) {
+            if (index >= 0 && index < menuItems.length) {
+                selectedIndex = index;
+                drawMenu(selectedIndex);
+                
+                // Воспроизводим звук при выборе
+                Sound(440, 30); // нота A4
+                
+                // Если выбран EXIT, показываем сообщение
+                if (selectedIndex === 3) {
+                    setTimeout(() => {
+                        if (confirm('Выход из программы?')) {
+                            document.getElementById('dosPrompt').textContent = 'C:\\> program terminated';
+                        }
+                    }, 100);
+                }
+            }
+        }
+        
+        //-----------------------------------------
+        // Обработка клавиш (аналог ReadKey)
+        //-----------------------------------------
+        function handleKeyDown(e) {
+            // Предотвращаем скролл страницы
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'Enter' || e.key === 'Escape') {
+                e.preventDefault();
+            }
+            
+            switch(e.key) {
+                case 'ArrowUp':
+                    // Стрелка вверх - аналог #72
+                    if (selectedIndex > 0) {
+                        drawMenuItem(selectedIndex, false); // убираем выделение
+                        selectedIndex--;
+                        drawMenuItem(selectedIndex, true); // выделяем новый
+                        document.getElementById('selectedItem').textContent = menuItems[selectedIndex];
+                        Sound(523, 20); // нота C5
+                        
+                        document.getElementById('dosPrompt').textContent = `C:\\> move up to ${menuItems[selectedIndex]}`;
+                    }
+                    break;
+                    
+                case 'ArrowDown':
+                    // Стрелка вниз - аналог #80
+                    if (selectedIndex < menuItems.length - 1) {
+                        drawMenuItem(selectedIndex, false); // убираем выделение
+                        selectedIndex++;
+                        drawMenuItem(selectedIndex, true); // выделяем новый
+                        document.getElementById('selectedItem').textContent = menuItems[selectedIndex];
+                        Sound(523, 20); // нота C5
+                        
+                        document.getElementById('dosPrompt').textContent = `C:\\> move down to ${menuItems[selectedIndex]}`;
+                    }
+                    break;
+                    
+                case 'Enter':
+                    // Enter - выбор пункта
+                    Sound(660, 50); // нота E5
+                    document.getElementById('dosPrompt').textContent = `C:\\> execute ${menuItems[selectedIndex]}`;
+                    
+                    if (selectedIndex === 3) {
+                        setTimeout(() => {
+                            if (confirm('Выход из программы?')) {
+                                document.getElementById('dosPrompt').textContent = 'C:\\> program terminated';
+                            }
+                        }, 150);
+                    }
+                    break;
+                    
+                case 'Escape':
+                    // Escape - выход
+                    Sound(330, 30); // нота E4
+                    document.getElementById('dosPrompt').textContent = 'C:\\> press any key to continue...';
+                    break;
+            }
+        }
+        
+        //-----------------------------------------
+        // Создание списка нот
+        //-----------------------------------------
+        function createSoundList() {
+            const list = document.getElementById('soundList');
+            list.innerHTML = '';
+            
+            for (let i = 0; i < frequencies.length; i++) {
+                const note = document.createElement('div');
+                note.className = 'sound-note';
+                note.textContent = `${noteNames[i]}\n${frequencies[i]}Hz`;
+                note.onclick = () => Sound(frequencies[i], 100);
+                list.appendChild(note);
+            }
+        }
+        
+        //-----------------------------------------
+        // Инициализация
+        //-----------------------------------------
+        window.onload = () => {
+            createSoundList();
+            drawMenu(0);
+            
+            // Добавляем обработчик клавиш
+            window.addEventListener('keydown', handleKeyDown);
+            
+            // Инициализируем AudioContext по клику
+            document.addEventListener('click', () => {
+                initAudio();
+            }, { once: true });
+            
+            document.getElementById('dosPrompt').textContent = 'C:\\> program loaded. Use arrow keys.';
+        };
+        
+        // Соответствие оригинальной программе на Pascal
+        /*
+        Procedure NewDelay(dTime:word);
+        Var
+            Hour, Min, Sec, SeclOO, MyHour, MyMin, MySec, MySeclOO: Word;
+        Begin
+            GetTime(Hour, Min, Sec, SeclOO);
+            MySeclOO := SeclOO + dTime;
+            MySec := Sec + MySeclOO div 100;
+            MySeclOO := MySeclOO mod 100;
+            MyMin := Min + MySec div 60;
+            MySec := MySec mod 60;
+            MyHour := Hour + MyMin div 60;
+            MyMin := MyMin mod 60;
+            
+            while not key do begin
+                GetTime(Hour, Min, Sec, SeclOO);
+                if (Hour > MyHour) or ((Hour = MyHour) and 
+                   ((Min > MyMin) or ((Min = MyMin) and 
+                   ((Sec > MySec) or ((Sec = MySec) and (SeclOO >= MySeclOO)))))) then
+                    key := true;
+            end;
+        End;
+        
+        Const
+            f: array[1..13] of word = (330, 349, 370, 392, 415, 440,
+                                        466, 494, 523, 554, 588, 622, 660);
+        
+        Begin
+            for i := 1 to 13 do begin
+                Sound(f[i]);
+                NewDelay(50);
+                NoSound;
+            end;
+        End.
+        */
+    </script>
+</body>
+</html>

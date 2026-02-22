@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Анимация квадрата - поворот и масштабирование</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Montserrat', sans-serif;
+            background: linear-gradient(145deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: rgba(255,255,255,0.95);
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            max-width: 1000px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #1e3c72;
+            margin-bottom: 20px;
+            font-weight: 300;
+            font-size: 2.5em;
+        }
+        
+        h1 span {
+            font-weight: 600;
+            color: #4a90e2;
+            border-bottom: 3px solid #4a90e2;
+            padding-bottom: 5px;
+        }
+        
+        .canvas-container {
+            position: relative;
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            margin: 25px 0;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 15px;
+            background: #fafafa;
+            cursor: crosshair;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            background: linear-gradient(145deg, #4a90e2, #357abd);
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 20px -5px #4a90e2;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px -5px #4a90e2;
+        }
+        
+        .btn.stop {
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
+            box-shadow: 0 10px 20px -5px #e74c3c;
+        }
+        
+        .btn.reset {
+            background: linear-gradient(145deg, #f39c12, #e67e22);
+            box-shadow: 0 10px 20px -5px #f39c12;
+        }
+        
+        .info-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .info-card {
+            background: linear-gradient(145deg, #ffffff, #f5f5f5);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            border-left: 4px solid #4a90e2;
+        }
+        
+        .info-label {
+            color: #666;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .info-value {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2a5298;
+            font-family: 'Courier New', monospace;
+            margin-top: 5px;
+        }
+        
+        .slider-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .slider-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .slider-item label {
+            min-width: 120px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .slider-item input {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #4a90e2, #357abd);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .slider-item input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #4a90e2;
+        }
+        
+        .slider-value {
+            min-width: 80px;
+            text-align: right;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            color: #4a90e2;
+        }
+        
+        .vertex-coords {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .vertex-item {
+            background: #f0f0f0;
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+        
+        .vertex-title {
+            color: #666;
+            font-size: 0.8em;
+        }
+        
+        .vertex-value {
+            font-family: 'Courier New', monospace;
+            color: #4a90e2;
+            font-weight: 600;
+        }
+        
+        .status-bar {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.1em;
+        }
+        
+        .coords {
+            font-family: 'Courier New', monospace;
+            color: #4a90e2;
+            font-weight: 600;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span>🔄 Анимация квадрата</span> (поворот + масштабирование)</h1>
+        
+        <div class="canvas-container">
+            <canvas id="canvas" width="800" height="600"></canvas>
+        </div>
+        
+        <div class="status-bar">
+            <span>⏱️ Угол поворота: <span class="coords" id="angleDisplay">0.000 rad</span></span>
+            <span>📏 Масштаб: <span class="coords" id="scaleDisplay">1.000</span></span>
+            <span>🖱️ Центр: <span class="coords" id="centerDisplay">(600, 200)</span></span>
+        </div>
+        
+        <div class="controls">
+            <button class="btn" onclick="startAnimation()" id="startBtn">▶ Старт</button>
+            <button class="btn stop" onclick="stopAnimation()" id="stopBtn">⏹ Стоп</button>
+            <button class="btn reset" onclick="resetAnimation()">↺ Сброс</button>
+        </div>
+        
+        <div class="slider-container">
+            <div class="slider-item">
+                <label>Скорость поворота:</label>
+                <input type="range" id="speedSlider" min="0.0001" max="0.01" step="0.0001" value="0.001">
+                <span class="slider-value" id="speedValue">0.001</span>
+            </div>
+            <div class="slider-item">
+                <label>Масштаб (k):</label>
+                <input type="range" id="scaleSlider" min="0.9" max="1.1" step="0.001" value="0.99">
+                <span class="slider-value" id="scaleValue">0.990</span>
+            </div>
+            <div class="slider-item">
+                <label>Радиус (r):</label>
+                <input type="range" id="radiusSlider" min="50" max="150" step="1" value="100">
+                <span class="slider-value" id="radiusValue">100</span>
+            </div>
+        </div>
+        
+        <div class="info-panel">
+            <div class="info-card">
+                <div class="info-label">Размер экрана</div>
+                <div class="info-value" id="screenSize">800x600</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">Центр 1 (xn,yn)</div>
+                <div class="info-value" id="center1">(200, 400)</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">Центр 2 (xc,yc)</div>
+                <div class="info-value" id="center2">(600, 200)</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">Итерация</div>
+                <div class="info-value" id="iteration">0</div>
+            </div>
+        </div>
+        
+        <div class="vertex-coords" id="vertexCoords">
+            <!-- будут добавлены через JS -->
+        </div>
+        
+        <footer>
+            © К. Поляков | Перевод на JavaScript | r=100, k=0.99, поворот + масштабирование
+        </footer>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Константы
+        const width = 800;
+        const height = 600;
+        
+        // Переменные из оригинальной программы
+        let x = new Array(4);  // координаты X вершин
+        let y = new Array(4);  // координаты Y вершин
+        let xl = new Array(4); // новые координаты X
+        let yl = new Array(4); // новые координаты Y
+        
+        let xn, yn;  // центр для поворота
+        let xc, yc;  // центр для масштабирования
+        
+        let r = 100;  // радиус (половина стороны квадрата)
+        let k = 0.99; // коэффициент масштабирования
+        let t = 0;    // угол поворота
+        let speed = 0.001; // скорость поворота
+        
+        let animationId = null;
+        let running = false;
+        let iteration = 0;
+        
+        //-----------------------------------------
+        // Инициализация координат
+        //-----------------------------------------
+        function initCoordinates() {
+            // Центры
+            xn = Math.floor(width / 4);        // 200
+            yn = Math.floor(height / 3 * 2);   // 400
+            xc = width - xn;                    // 600
+            yc = height - yn;                    // 200
+            
+            // Начальные координаты квадрата (центр в xn, yn)
+            x[0] = xn - r; y[0] = yn - r;  // левый верхний
+            x[1] = xn + r; y[1] = yn - r;  // правый верхний
+            x[2] = xn + r; y[2] = yn + r;  // правый нижний
+            x[3] = xn - r; y[3] = yn + r;  // левый нижний
+            
+            updateInfo();
+        }
+        
+        //-----------------------------------------
+        // Рисование квадрата (аналог Square)
+        //-----------------------------------------
+        function Square(xArr, yArr, color) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            
+            for (let i = 0; i < 4; i++) {
+                const next = (i + 1) % 4;
+                ctx.beginPath();
+                ctx.moveTo(xArr[i], yArr[i]);
+                ctx.lineTo(xArr[next], yArr[next]);
+                ctx.stroke();
+            }
+            
+            // Рисуем точки вершин
+            ctx.fillStyle = color;
+            for (let i = 0; i < 4; i++) {
+                ctx.beginPath();
+                ctx.arc(xArr[i], yArr[i], 3, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+        }
+        
+        //-----------------------------------------
+        // Поворот точки (аналог Pow)
+        //-----------------------------------------
+        function Pow(xc, yc, x, y, angle, result) {
+            // xl = xc + round((x - xc) * cos(t)) + round((y - yc) * sin(t))
+            // yl = yc + round((y - yc) * cos(t)) - round((x - xc) * sin(t))
+            const cosT = Math.cos(angle);
+            const sinT = Math.sin(angle);
+            
+            result.x = Math.round(xc + (x - xc) * cosT + (y - yc) * sinT);
+            result.y = Math.round(yc + (y - yc) * cosT - (x - xc) * sinT);
+        }
+        
+        //-----------------------------------------
+        // Масштабирование (аналог Massch)
+        //-----------------------------------------
+        function Massch(xc, yc, x, y, scale, result) {
+            // xl = round(x * k + (1 - k) * xc)
+            // yl = round(y * k + (1 - k) * yc)
+            result.x = Math.round(x * scale + (1 - scale) * xc);
+            result.y = Math.round(y * scale + (1 - scale) * yc);
+        }
+        
+        //-----------------------------------------
+        // Очистка canvas
+        //-----------------------------------------
+        function clearCanvas() {
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = '#fafafa';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Рисуем вспомогательные точки
+            ctx.fillStyle = '#999';
+            ctx.beginPath();
+            ctx.arc(xn, yn, 5, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.fillStyle = '#4a90e2';
+            ctx.fillText('Центр 1', xn + 10, yn - 10);
+            
+            ctx.beginPath();
+            ctx.arc(xc, yc, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = '#e74c3c';
+            ctx.fill();
+            ctx.fillStyle = '#e74c3c';
+            ctx.fillText('Центр 2', xc + 10, yc - 10);
+        }
+        
+        //-----------------------------------------
+        // Обновление информации
+        //-----------------------------------------
+        function updateInfo() {
+            document.getElementById('screenSize').textContent = `${width}x${height}`;
+            document.getElementById('center1').textContent = `(${xn}, ${yn})`;
+            document.getElementById('center2').textContent = `(${xc}, ${yc})`;
+            document.getElementById('iteration').textContent = iteration;
+            document.getElementById('angleDisplay').textContent = t.toFixed(3) + ' rad';
+            document.getElementById('scaleDisplay').textContent = k.toFixed(3);
+            document.getElementById('centerDisplay').textContent = `(${xc}, ${yc})`;
+            
+            // Обновляем координаты вершин
+            const container = document.getElementById('vertexCoords');
+            container.innerHTML = '';
+            for (let i = 0; i < 4; i++) {
+                const div = document.createElement('div');
+                div.className = 'vertex-item';
+                div.innerHTML = `
+                    <div class="vertex-title">Вершина ${i+1}</div>
+                    <div class="vertex-value">(${x[i]}, ${y[i]})</div>
+                `;
+                container.appendChild(div);
+            }
+        }
+        
+        //-----------------------------------------
+        // Шаг анимации
+        //-----------------------------------------
+        function animate() {
+            if (!running) return;
+            
+            // Рисуем квадрат зеленым (цвет 2)
+            Square(x, y, '#2ecc71');
+            
+            // Увеличиваем угол
+            t += speed;
+            
+            // Масштабирование
+            for (let j = 0; j < 4; j++) {
+                const result = { x: 0, y: 0 };
+                Massch(xc, yc, x[j], y[j], k, result);
+                xl[j] = result.x;
+                yl[j] = result.y;
+            }
+            
+            // Масштабирование центра
+            const centerResult = { x: 0, y: 0 };
+            Massch(xc, yc, xn, yn, k, centerResult);
+            xn = centerResult.x;
+            yn = centerResult.y;
+            
+            // Поворот
+            for (let j = 0; j < 4; j++) {
+                const result = { x: 0, y: 0 };
+                Pow(xn, yn, xl[j], yl[j], t, result);
+                xl[j] = result.x;
+                yl[j] = result.y;
+            }
+            
+            // Задержка (аналог Delay)
+            setTimeout(() => {
+                if (!running) return;
+                
+                // Стираем квадрат (рисуем фоном)
+                clearCanvas();
+                
+                // Обновляем координаты
+                for (let j = 0; j < 4; j++) {
+                    x[j] = xl[j];
+                    y[j] = yl[j];
+                }
+                
+                iteration++;
+                updateInfo();
+                
+                // Продолжаем анимацию
+                animationId = setTimeout(animate, 10);
+            }, 10);
+        }
+        
+        //-----------------------------------------
+        // Управление анимацией
+        //-----------------------------------------
+        function startAnimation() {
+            if (!running) {
+                running = true;
+                animate();
+            }
+        }
+        
+        function stopAnimation() {
+            running = false;
+            if (animationId) {
+                clearTimeout(animationId);
+                animationId = null;
+            }
+            // Показываем текущий квадрат
+            clearCanvas();
+            Square(x, y, '#2ecc71');
+        }
+        
+        function resetAnimation() {
+            stopAnimation();
+            t = 0;
+            iteration = 0;
+            r = parseInt(document.getElementById('radiusSlider').value);
+            k = parseFloat(document.getElementById('scaleSlider').value);
+            speed = parseFloat(document.getElementById('speedSlider').value);
+            
+            initCoordinates();
+            clearCanvas();
+            Square(x, y, '#2ecc71');
+        }
+        
+        //-----------------------------------------
+        // Обработчики слайдеров
+        //-----------------------------------------
+        document.getElementById('speedSlider').addEventListener('input', (e) => {
+            speed = parseFloat(e.target.value);
+            document.getElementById('speedValue').textContent = speed.toFixed(4);
+        });
+        
+        document.getElementById('scaleSlider').addEventListener('input', (e) => {
+            k = parseFloat(e.target.value);
+            document.getElementById('scaleValue').textContent = k.toFixed(3);
+        });
+        
+        document.getElementById('radiusSlider').addEventListener('input', (e) => {
+            r = parseInt(e.target.value);
+            document.getElementById('radiusValue').textContent = r;
+            if (!running) {
+                resetAnimation();
+            }
+        });
+        
+        //-----------------------------------------
+        // Обработка клавиш
+        //-----------------------------------------
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                stopAnimation();
+            } else if (e.key === ' ') {
+                e.preventDefault();
+                if (running) {
+                    stopAnimation();
+                } else {
+                    startAnimation();
+                }
+            }
+        });
+        
+        //-----------------------------------------
+        // Инициализация
+        //-----------------------------------------
+        window.onload = () => {
+            initCoordinates();
+            clearCanvas();
+            Square(x, y, '#2ecc71');
+            
+            document.getElementById('speedValue').textContent = speed.toFixed(4);
+            document.getElementById('scaleValue').textContent = k.toFixed(3);
+            document.getElementById('radiusValue').textContent = r;
+        };
+        
+        // Соответствие оригинальной программе на Pascal
+        /*
+        Procedure Square(x, y: mas);
+        Begin
+            Line(x[1], y[1], x[2], y[2]);
+            Line(x[2], y[2], x[3], y[3]);
+            Line(x[3], y[3], x[4], y[4]);
+            Line(x[4], y[4], x[1], y[1]);
+        End;
+        
+        Procedure Pow(xc, yc, x, y: integer; t: real; var xl, yl: integer);
+        Begin
+            xl := xc + round((x - xc) * cos(t)) + round((y - yc) * sin(t));
+            yl := yc + round((y - yc) * cos(t)) - round((x - xc) * sin(t));
+        End;
+        
+        Procedure Massch(xc, yc, x, y: integer; k: real; var xl, yl: integer);
+        Begin
+            xl := round(x * k + (1 - k) * xc);
+            yl := round(y * k + (1 - k) * yc);
+        End;
+        
+        Begin
+            gd := detect;
+            InitGraph(gd, gm, 'd:\bp\bgi');
+            SetColor(2);
+            xn := GetMaxX div 4;
+            yn := GetMaxY div 3 * 2;
+            xc := GetMaxX - xn;
+            yc := GetMaxY - yn;
+            
+            x[1] := xn - r; y[1] := yn - r;
+            x[2] := xn + r; y[2] := yn - r;
+            x[3] := xn + r; y[3] := yn + r;
+            x[4] := xn - r; y[4] := yn + r;
+            
+            k := 0.99; t := 0;
+            
+            while (t < 1) and not KeyPressed do begin
+                SetColor(2);
+                Square(x, y);
+                t := t + 0.001;
+                
+                for j := 1 to 4 do
+                    Massch(xc, yc, x[j], y[j], k, xl[j], yl[j]);
+                Massch(xc, yc, xn, yn, k, xn, yn);
+                
+                for j := 1 to 4 do
+                    Pow(xn, yn, xl[j], yl[j], t, xl[j], yl[j]);
+                
+                for j := 1 to 1500 do Delay(1000);
+                
+                SetColor(0);
+                Square(x, y);
+                
+                x := xl;
+                y := yl;
+            end;
+            
+            CloseGraph;
+        End.
+        */
+    </script>
+</body>
+</html>
